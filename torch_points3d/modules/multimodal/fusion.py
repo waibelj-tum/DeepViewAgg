@@ -35,7 +35,7 @@ class BimodalFusion(nn.Module, ABC):
                 f"Unknown fusion mode='{mode}'. Please choose among "
                 f"supported modes: {self.MODES}.")
 
-    def forward(self, x_main, x_mod):
+    def forward(self, x_main, x_mod, xyz):
         if x_main is None:
             return x_mod
         if x_mod is None:
@@ -51,3 +51,11 @@ class BimodalFusion(nn.Module, ABC):
 
     def extra_repr(self) -> str:
         return f"mode={self.mode}"
+
+
+class SelfAttentiveBimodalFusion(nn.Module, ABC):
+    def __init__(self):
+        super().__init__()
+
+    
+    def forward(self, x_main, x_mod, xyz):

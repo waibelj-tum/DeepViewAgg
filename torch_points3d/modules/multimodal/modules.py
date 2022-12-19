@@ -306,6 +306,7 @@ class UnimodalBranch(nn.Module, ABC):
         is_sparse_3d = not isinstance(
             mm_data_dict['x_3d'], (torch.Tensor, type(None)))
         x_3d = mm_data_dict['x_3d'].F if is_sparse_3d else mm_data_dict['x_3d']
+        xyz = mm_data_dict['x_3d'].C if is_sparse_3d else None
         mod_data = mm_data_dict['modalities'][modality]
 
         # Check whether the modality carries multi-setting data
@@ -413,7 +414,7 @@ class UnimodalBranch(nn.Module, ABC):
         x_3d, x_mod, mod_data = self.forward_dropout(x_3d, x_mod, mod_data)
 
         # Fuse the modality features into the 3D points features
-        x_3d = self.forward_fusion(x_3d, x_mod)
+        x_3d = self.forward_fusion(x_3d, x_mod, xyz)
 
         # In case it has not been provided at initialization, save the
         # output channel size. This is useful for when a batch has no
