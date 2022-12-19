@@ -1,0 +1,14 @@
+# ninja log v5
+1	5909	1671464600719320039	/home/rozenberszki/altay/DeepViewAgg/point-transformer/pointops/build/temp.linux-x86_64-3.7/src/grouping/grouping_cuda.o	56dcb423d75f1d31
+2	6004	1671464600815319068	/home/rozenberszki/altay/DeepViewAgg/point-transformer/pointops/build/temp.linux-x86_64-3.7/src/aggregation/aggregation_cuda.o	78a06878ca14ce0c
+1	8052	1671464602863298365	/home/rozenberszki/altay/DeepViewAgg/point-transformer/pointops/build/temp.linux-x86_64-3.7/src/knnquery/knnquery_cuda.o	a5510cc639dc8800
+2	8718	1671464603527291653	/home/rozenberszki/altay/DeepViewAgg/point-transformer/pointops/build/temp.linux-x86_64-3.7/src/subtraction/subtraction_cuda.o	e98288a7d552cf0f
+1	8750	1671464603559291330	/home/rozenberszki/altay/DeepViewAgg/point-transformer/pointops/build/temp.linux-x86_64-3.7/src/interpolation/interpolation_cuda.o	fbb39f1029f12df2
+1	8781	1671464603591291007	/home/rozenberszki/altay/DeepViewAgg/point-transformer/pointops/build/temp.linux-x86_64-3.7/src/sampling/sampling_cuda.o	2837365d9166c3cb
+2	16746	1671464611551210540	/home/rozenberszki/altay/DeepViewAgg/point-transformer/pointops/build/temp.linux-x86_64-3.7/src/interpolation/interpolation_cuda_kernel.o	6e287a485df3b97
+1	16822	1671464611627209771	/home/rozenberszki/altay/DeepViewAgg/point-transformer/pointops/build/temp.linux-x86_64-3.7/src/knnquery/knnquery_cuda_kernel.o	81f486948e26ed1d
+2	17058	1671464611867207345	/home/rozenberszki/altay/DeepViewAgg/point-transformer/pointops/build/temp.linux-x86_64-3.7/src/aggregation/aggregation_cuda_kernel.o	336bb05e4443a3d6
+2	17077	1671464611887207143	/home/rozenberszki/altay/DeepViewAgg/point-transformer/pointops/build/temp.linux-x86_64-3.7/src/subtraction/subtraction_cuda_kernel.o	89e7b500191c6e2d
+1	17295	1671464612103204960	/home/rozenberszki/altay/DeepViewAgg/point-transformer/pointops/build/temp.linux-x86_64-3.7/src/grouping/grouping_cuda_kernel.o	f40a7dc85b14d48b
+1	17868	1671464612675199178	/home/rozenberszki/altay/DeepViewAgg/point-transformer/pointops/build/temp.linux-x86_64-3.7/src/sampling/sampling_cuda_kernel.o	9760097231f6cad2
+0	20464	1671464615267172976	/home/rozenberszki/altay/DeepViewAgg/point-transformer/pointops/build/temp.linux-x86_64-3.7/src/pointops_api.o	f49a146c5f31309
