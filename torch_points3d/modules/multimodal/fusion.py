@@ -7,7 +7,9 @@ import torch.nn as nn
 from torch_scatter import segment_csr, scatter_min, scatter_max
 from torch_points3d.core.common_modules import MLP
 
-from torch_points3d.utils.adl4cv_utils import csr_to_offset
+from torch_points3d.modules.PointTransformer.layers import PointTransformerLayer
+from torch_points3d.utils.adl4cv_utils import get_offset_from_xyz
+
 
 class BimodalFusion(nn.Module, ABC):
     """Bimodal fusion combines features from different modalities into
@@ -22,23 +24,24 @@ class BimodalFusion(nn.Module, ABC):
     main modality
     """
 
-    MODES = ['residual', 'concatenation', 'both', 'modality']
+    MODES = ["residual", "concatenation", "both", "modality"]
 
-    def __init__(self, mode='residual', **kwargs):
+    def __init__(self, mode="residual", **kwargs):
         super(BimodalFusion, self).__init__()
         self.mode = mode
-        if self.mode == 'residual':
+        if self.mode == "residual":
             self.f = lambda a, b: a + b
-        elif self.mode == 'concatenation':
+        elif self.mode == "concatenation":
             self.f = lambda a, b: torch.cat((a, b), dim=-1)
-        elif self.mode == 'both':
+        elif self.mode == "both":
             self.f = lambda a, b: torch.cat((a, a + b), dim=-1)
-        elif self.mode == 'modality':
+        elif self.mode == "modality":
             self.f = lambda a, b: b
         else:
             raise NotImplementedError(
                 f"Unknown fusion mode='{mode}'. Please choose among "
-                f"supported modes: {self.MODES}.")
+                f"supported modes: {self.MODES}."
+            )
 
     def forward(self, x_main, x_mod, xyz):
         if x_main is None:
@@ -63,49 +66,85 @@ class SelfAttentiveBimodalFusion(nn.Module, ABC):
     Concatenates the 2d and 3d features to then apply either local or global
     self-attention.
 
-    Implementation inspired by the existing QKVBimodalCSRPool from the original
-    authors.
+    Implementation and notation inspired by the existing QKVBimodalCSRPool
+    from the original authors.
 
     TODO: For the global attention mode, it would be sensible to add a positional
     encoding.
     """
 
-    MODES = ['global', 'local']
+    MODES = ["global", "local"]
 
-    def __init__(self, mode='global', in_main=None, in_mod=None, out_main=None,
-                 nc_inner=16, nc_qk=8):
+    def __init__(
+        self,
+        mode=None,
+        in_main=None,
+        in_mod=None,
+        out_main=None,
+        nc_inner=16,
+        nc_qk=8,
+        nsample=16,
+    ):
         super().__init__()
         self.mode = mode
+        self.in_main = in_main
+        self.in_mod = in_mod
+        self.out_main = out_main
+        self.nc_inner = nc_inner
         self.nc_qk = nc_qk
+        self.nsample = nsample
+
         # Layers
         self.concat = lambda a, b: torch.cat((a, b), dim=-1)
 
         # E embeds the concatenated features for self-attention
         self.E = MLP([in_main + in_mod, nc_inner, nc_inner], bias=False)
 
-        # Linear transformations for the Query, Key and Values
-        self.W_Q = nn.Linear(nc_inner, nc_qk, bias=False)
-        self.W_K = nn.Linear(nc_inner, nc_qk, bias=False)
-        self.W_V = nn.Linear(nc_inner, out_main, bias=False)
+        if self.mode == "global":
+            # Linear transformations for the Query, Key and Values
+            self.W_Q = nn.Linear(nc_inner, nc_qk, bias=False)
+            self.W_K = nn.Linear(nc_inner, nc_qk, bias=False)
+            self.W_V = nn.Linear(nc_inner, out_main, bias=False)
 
-        # Softmax 
-        self.softmax = nn.Softmax(dim=1)
+            # Softmax
+            self.softmax = nn.Softmax(dim=1)
 
-    
-    def forward(self, x_main, x_mod, xyz):
-        
-        # Combine modalities and embed
-        x_main = self.concat(x_main, x_mod) # (N, F_main + F_mod)
-        x_main = self.E(x_main) # (N, nc_inner)
-        
-        if self.mode == 'global':
-            Q = self.W_Q(x_main) # (N, nc_qk)
-            K = self.W_K(x_main) # (N, nc_qk)
-            V = self.W_V(x_main) # (N, out_main)
+        elif self.mode == "local":
+            # PointTransformer layer, it already has linear layers and softmax.
+            # Works on the embedded representations, so in_planes is nc_inner.
+            self.pointtransformer_layer = PointTransformerLayer(
+                in_planes=self.nc_inner, out_planes=self.out_main, nsample=self.nsample
+            )
 
-            x_main = self.softmax( Q @ K.T / math.sqrt(self.nc_qk)) @ V
         else:
-            pass
+            raise NotImplementedError(f"Unsupported fusion mode {self.mode}!")
+
+    def forward(self, x_main, x_mod, xyz):
+
+        # Combine modalities and embed
+        x_main = self.concat(x_main, x_mod)  # (N, F_main + F_mod)
+        x_main = self.E(x_main)  # (N, nc_inner)
+
+        if self.mode == "global":
+            Q = self.W_Q(x_main)  # (N, nc_qk)
+            K = self.W_K(x_main)  # (N, nc_qk)
+            V = self.W_V(x_main)  # (N, out_main)
+
+            x_main = self.softmax(Q @ K.T / math.sqrt(self.nc_qk)) @ V
+
+        elif self.mode == "local":
+            coords = xyz[:, 0:3]
+
+            # All tensors must be contiguous otherwise Cuda problems
+            coords = coords.contiguous() 
+
+            offset = get_offset_from_xyz(xyz)  # Conversion of notation
+
+            # PointTransformer layer expects a list of coordinates, features and
+            # the offset tensor.
+            x_main = self.pointtransformer_layer([coords, x_main, offset])
+
+        else:
+            raise NotImplementedError(f"Unsupported fusion mode {self.mode}!")
 
         return x_main
-
