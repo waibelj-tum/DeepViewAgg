@@ -28,7 +28,7 @@ pt_layer = PointTransformerLayer(in_planes=F_main, out_planes=16)
 
 pt_layer = pt_layer.cuda()
 
-pt_layer([xyz.cuda(), x_main.cuda(), o.cuda()])
+pt_layer([xyz.cuda(), x_main.cuda(), o.cuda()]) # Need to pass list
 
 
 

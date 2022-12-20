@@ -1,7 +1,10 @@
 import torch
 import torch.nn as nn
-from point_transformer.pointops.functions import pointops
 
+from point_transformer.pointops.functions import pointops
+"""
+Implementation taken from: https://github.com/POSTECH-CVLab/point-transformer
+"""
 
 class PointTransformerLayer(nn.Module):
     def __init__(self, in_planes, out_planes, share_planes=8, nsample=16):
