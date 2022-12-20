@@ -7,6 +7,7 @@ import torch.nn as nn
 from torch_scatter import segment_csr, scatter_min, scatter_max
 from torch_points3d.core.common_modules import MLP
 
+from torch_points3d.utils.adl4cv_utils import csr_to_offset
 
 class BimodalFusion(nn.Module, ABC):
     """Bimodal fusion combines features from different modalities into
@@ -65,6 +66,8 @@ class SelfAttentiveBimodalFusion(nn.Module, ABC):
     Implementation inspired by the existing QKVBimodalCSRPool from the original
     authors.
 
+    TODO: For the global attention mode, it would be sensible to add a positional
+    encoding.
     """
 
     MODES = ['global', 'local']
