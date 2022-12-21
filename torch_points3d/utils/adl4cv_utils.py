@@ -28,5 +28,5 @@ def get_offset_from_xyz(xyz):
     counts = torch.bincount(batch_idx.int()) #bincount only works for int tensors
     offset = torch.cumsum(counts, dim=0)
 
-    return offset.int() #Need to return int for cuda implmentation of knn
+    return offset.int() # Need to return int for cuda implmentation of knn
 

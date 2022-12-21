@@ -71,6 +71,11 @@ class SelfAttentiveBimodalFusion(nn.Module, ABC):
 
     TODO: For the global attention mode, it would be sensible to add a positional
     encoding.
+    TODO: Global attention causes CUDA memory overflow, do we even separate the
+    samples in the batches? Lowering the dimensions didn't help
+
+    TODO: Local attention also has memory issues even when the batch size is 2,
+    batch size 1 seems to work
     """
 
     MODES = ["global", "local"]
@@ -84,6 +89,7 @@ class SelfAttentiveBimodalFusion(nn.Module, ABC):
         nc_inner=16,
         nc_qk=8,
         nsample=16,
+        **kwargs
     ):
         super().__init__()
         self.mode = mode
@@ -120,20 +126,31 @@ class SelfAttentiveBimodalFusion(nn.Module, ABC):
             raise NotImplementedError(f"Unsupported fusion mode {self.mode}!")
 
     def forward(self, x_main, x_mod, xyz):
+        # Since the whole architecture is built of MultiModalDown/Up blocks
+        # all of them have a fusion module even if there is no extra modality.
+        # This bit of code is necessary to skip the blocks where there is no 
+        # branching.
+        if x_main is None:
+            return x_mod
+        if x_mod is None:
+            return x_main
 
         # Combine modalities and embed
-        x_main = self.concat(x_main, x_mod)  # (N, F_main + F_mod)
-        x_main = self.E(x_main)  # (N, nc_inner)
+        x_fused = self.concat(x_main, x_mod)  # (N, F_main + F_mod)
+        x_fused = self.E(x_fused)  # (N, nc_inner)
 
         if self.mode == "global":
-            Q = self.W_Q(x_main)  # (N, nc_qk)
-            K = self.W_K(x_main)  # (N, nc_qk)
-            V = self.W_V(x_main)  # (N, out_main)
+            Q = self.W_Q(x_fused)  # (N, nc_qk)
+            K = self.W_K(x_fused)  # (N, nc_qk)
+            V = self.W_V(x_fused)  # (N, out_main)
 
-            x_main = self.softmax(Q @ K.T / math.sqrt(self.nc_qk)) @ V
+            x_fused = self.softmax(Q @ K.T / math.sqrt(self.nc_qk)) @ V
 
         elif self.mode == "local":
             coords = xyz[:, 0:3]
+
+            # Knn query pointops expects a float tensor for the coords
+            coords = coords.float()
 
             # All tensors must be contiguous otherwise Cuda problems
             coords = coords.contiguous() 
@@ -142,9 +159,9 @@ class SelfAttentiveBimodalFusion(nn.Module, ABC):
 
             # PointTransformer layer expects a list of coordinates, features and
             # the offset tensor.
-            x_main = self.pointtransformer_layer([coords, x_main, offset])
+            x_fused = self.pointtransformer_layer([coords, x_fused, offset])
 
         else:
             raise NotImplementedError(f"Unsupported fusion mode {self.mode}!")
 
-        return x_main
+        return x_fused

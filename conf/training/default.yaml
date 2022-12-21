@@ -29,8 +29,8 @@ checkpoint_dir: ""
 # Those arguments within experiment defines which model, dataset and task to be created for benchmarking
 # parameters for Weights and Biases
 wandb:
-  entity: ""
-  project: default
+  entity: adl4cv-dva
+  project: deep_view_aggregation
   log: True
   notes:
   name:
@@ -40,4 +40,4 @@ wandb:
 
   # parameters for TensorBoard Visualization
 tensorboard:
-  log: True
+  log: False
