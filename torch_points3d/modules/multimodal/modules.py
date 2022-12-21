@@ -540,7 +540,7 @@ class UnimodalBranch(nn.Module, ABC):
             x_mod = self.view_pool(x_3d, x_mod, x_map, csr_idx)
         return x_mod, mod_data, csr_idx
 
-    def forward_fusion(self, x_3d, x_mod):
+    def forward_fusion(self, x_3d, x_mod, xyz):
         """Fuse the modality features into the 3D points features.
 
         :param x_3d:
@@ -548,9 +548,9 @@ class UnimodalBranch(nn.Module, ABC):
         :return:
         """
         if 'f' in self.checkpointing:
-            x_3d = checkpoint(self.fusion, x_3d, x_mod)
+            x_3d = checkpoint(self.fusion, x_3d, x_mod, xyz)
         else:
-            x_3d = self.fusion(x_3d, x_mod)
+            x_3d = self.fusion(x_3d, x_mod, xyz)
         return x_3d
 
     def forward_dropout(self, x_3d, x_mod, mod_data):

@@ -8,7 +8,8 @@ task: segmentation.multimodal
 # Note that changing 'resolution_3d', 'resolution_2d', 'image_ratio' or
 # 'image_r_max' will change the nature of image mappings and will hence
 # trigger the processing of new image mappings (if not already existing)
-resolution_2d: [1408, 376]  # Image resolution
+resolution_2d: [1408, 376] #resolution_2d: [1408, 376]  # Image resolution
+resolution_3d: 0.1
 padding_2d: 8               # Padding for CropImageGroups
 min_size_2d: 128            # Minimum size for CropImageGroups
 exact_splatting_2d: True    # Whether only exact mappings are preserved after splatting

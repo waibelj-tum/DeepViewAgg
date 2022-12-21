@@ -47,7 +47,7 @@ checkpoint_dir: ""
 # Those arguments within experiment defines which model, dataset and task to be created for benchmarking
 # parameters for Weights and Biases
 wandb:
-    entity: "damien_robert"
+    entity: "adl4cv-dva"
     project: kitti360-benchmark
     log: True
     notes: "SparseConv3D baseline"

@@ -7,7 +7,7 @@ Implementation taken from: https://github.com/POSTECH-CVLab/point-transformer
 """
 
 class PointTransformerLayer(nn.Module):
-    def __init__(self, in_planes, out_planes, share_planes=8, nsample=16):
+    def __init__(self, in_planes, out_planes, share_planes=1, nsample=16): # share_planes was 8, didn't work nicely before, 1 is better
         super().__init__()
         self.mid_planes = mid_planes = out_planes // 1
         self.out_planes = out_planes
