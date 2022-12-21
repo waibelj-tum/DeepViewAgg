@@ -44,24 +44,22 @@ def main(cfg):
 
 
 if __name__ == "__main__":
-    torch.cuda.empty_cache()
-    train = True
-
-    
     # Select you GPU
     I_GPU = 0
     torch.cuda.set_device(I_GPU)
     DIR = '/home/rozenberszki/altay/DeepViewAgg'
     ROOT = os.path.join(DIR, "..")
     sys.path.insert(0, ROOT)
-    sys.path.insert(0, DIR)
+    sys.path.insert(0, DIR) 
+
+    torch.cuda.empty_cache()
+    train = True
 
     DATA_ROOT="/mnt/hdd/datasets"                                       # set your dataset root directory, where the data was/will be downloaded
     EXP_NAME="dev-debug"                              # whatever suits your needs
     TASK="segmentation"
     MODELS_CONFIG=f"{TASK}/multimodal/adl4cv"                         # family of multimodal models using the sparseconv3d backbone
     MODEL_NAME="base-early-local-fusion"      # specific model name
-    # MODEL_NAME = "base-local-fusion"
     DATASET_CONFIG=f"{TASK}/multimodal/kitti360-sparse"
     TRAINING="kitti360_benchmark/sparseconv3d"     # training configuration for discriminative learning rate on the model
     EPOCHS=60

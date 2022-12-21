@@ -75,7 +75,7 @@ class SelfAttentiveBimodalFusion(nn.Module, ABC):
     samples in the batches? Lowering the dimensions didn't help
 
     TODO: Local attention also has memory issues even when the batch size is 2,
-    batch size 1 seems to work
+    batch size 1 seems to work.
     """
 
     MODES = ["global", "local"]
