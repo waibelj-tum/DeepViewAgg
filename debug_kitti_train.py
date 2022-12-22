@@ -66,14 +66,14 @@ if __name__ == "__main__":
     CYLINDERS_PER_EPOCH=12000                                               # roughly speaking, 40 cylinders per window
     TRAINVAL=False                                                          # True to train on Train+Val (eg before submission)
     MINI=True                                                               # True to train on mini version of KITTI-360 (eg to debug)
-    BATCH_SIZE=1                                                            # 4 fits in a 32G V100. Can be increased at inference time, of course
+    BATCH_SIZE=3                                                      # 4 fits in a 32G V100. Can be increased at inference time, of course
     WORKERS=4                                                               # adapt to your machine
     BASE_LR=0.02                                                             # initial learning rate
     LR_SCHEDULER='constant'                                                 # learning rate scheduler for 60 epochs
     EVAL_FREQUENCY=1                                                        # frequency at which metrics will be computed on Val. The less the faster the training but the less points on your validation curves
     SUBMISSION=False                                                        # True if you want to generate files for a submission to the KITTI-360 3D semantic segmentation benchmark
     CHECKPOINT_DIR=""                                                       # optional path to an already-existing checkpoint. If provided, the training will resume where it was left
-
+    TENSORBOARD=True
     overrides = [
         'task=segmentation',
         f'data={DATASET_CONFIG}',
@@ -96,6 +96,7 @@ if __name__ == "__main__":
         f'training.wandb.name={EXP_NAME}',
         f'tracker_options.make_submission={SUBMISSION}',
         f'training.checkpoint_dir={CHECKPOINT_DIR}',
+        f'training.tensorboard.log={TENSORBOARD}'
     ]
 
 

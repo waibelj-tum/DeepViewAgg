@@ -71,6 +71,7 @@ class SelfAttentiveBimodalFusion(nn.Module, ABC):
 
     TODO: For the global attention mode, it would be sensible to add a positional
     encoding.
+    
     TODO: Global attention causes CUDA memory overflow, do we even separate the
     samples in the batches? Lowering the dimensions didn't help
 
@@ -147,6 +148,7 @@ class SelfAttentiveBimodalFusion(nn.Module, ABC):
             x_fused = self.softmax(Q @ K.T / math.sqrt(self.nc_qk)) @ V
 
         elif self.mode == "local":
+            # Fourth column is the batch idx we need coordinates
             coords = xyz[:, 0:3]
 
             # Knn query pointops expects a float tensor for the coords
