@@ -196,7 +196,7 @@ tiny-base-intermediate-inner:
               [
                   [ FEAT, 4*in_feat ],
                   [ 4*in_feat , in_feat ],
-                  [ in_feat + out_feat_img_0, 2*in_feat ],
+                  [ in_feat, 2*in_feat ],
               ] 
 
             image:
@@ -211,14 +211,14 @@ tiny-base-intermediate-inner:
                 fusion:
                     module_name: BimodalFusion
                     mode: concatenation
-                branching_index: 2
-                out_channels: in_feat + out_feat_img_0  # This is necessary to support batches with no images
+                branching_index: 3
+                out_channels: 2*in_feat + out_feat_img_0  # This is necessary to support batches with no images
 #                 checkpointing: cav
 
         up_conv:
             # There is on option called skip_first, if it's true first the skip
             # connection is concatenated then the convolution is applied. By 
-            # default it's false (so skip connection is concataneted after the
+            # default it's false (so skip connection is concatenated after the
             # convolution of the respective layer)-
             block: block
             module_name: ResNetUp
@@ -227,7 +227,7 @@ tiny-base-intermediate-inner:
             stride: [  2, 2, 1 ]
             up_conv_nn:
                 [
-                  [ 2*in_feat, in_feat + out_feat_img_0, 3*in_feat ],
+                  [ 2*in_feat + out_feat_img_0, in_feat, 3*in_feat ],
                   [ 3*in_feat, 4*in_feat, 3*in_feat ],
                   [ 3*in_feat, 0, 3*in_feat ],
                 ]
@@ -239,15 +239,15 @@ base-early:
     backend: "torchsparse"
     backbone: # backbone offset specific for Sparse conv application builder
         define_constants:
-            in_feat: 2
+            in_feat: 8
             block: ResBlock # Can be any of the blocks in modules/MinkowskiEngine/api_modules.py
             out_feat_img_0: 128  # out dim of CityscapesResNet18
 
         down_conv:
             module_name: ResNetDown
             block: block
-            conv3d_after_fusion: False
-            N: [ 0, 1, 1, 1, 1 ]
+            conv3d_after_fusion: False # conv->fusion
+            N: [ 0, 1, 2, 3, 1 ]
             kernel_size: [ 3, 2, 2, 2, 2 ]
             stride: [ 1, 2, 2, 2, 2 ]
             down_conv_nn:
@@ -303,17 +303,18 @@ base-intermediate:
         down_conv:
             module_name: ResNetDown
             block: block
-            conv3d_after_fusion: False
-            #conv3_before_fusion: True
+            conv3d_after_fusion: False # conv->fusion
+            #conv3_before_fusion: False # fusion->conv
             N: [ 0, 1, 1, 1, 1 ]
             kernel_size: [ 3, 2, 2, 2, 2 ]
             stride: [ 1, 2, 2, 2, 2 ]
+            #num_early_conv: 0 # Ok this doesn't work, it's apparently always minimum 1
             down_conv_nn:
               [
-                  [ FEAT, 4*in_feat ],
-                  [ 4*in_feat, in_feat ],
-                  [ in_feat, 2*in_feat ],
-                  [ 2*in_feat + out_feat_img_0, 4*in_feat ],
+                  [ FEAT , 4*in_feat ],
+                  [ 4*in_feat , in_feat ],
+                  [ in_feat + out_feat_img_0, 2*in_feat ], # <== Changed this
+                  [ 2*in_feat , 4*in_feat ],
                   [ 4*in_feat, 8*in_feat ],
               ]
 
@@ -329,9 +330,9 @@ base-intermediate:
                 fusion:
                     module_name: BimodalFusion
                     mode: concatenation
-                branching_index: 3
-                out_channels: 2*in_feat + out_feat_img_0  # This is necessary to support batches with no images
-#                 checkpointing: cav
+                branching_index: 2                    # <== Changed this
+                out_channels: in_feat + out_feat_img_0  # <== Changed this
+                checkpointing: cav
 
         up_conv:
             block: block
@@ -342,9 +343,9 @@ base-intermediate:
             up_conv_nn:
                 [
                   [ 8*in_feat, 4*in_feat, 4*in_feat ],
-                  [ 4*in_feat, 2*in_feat + out_feat_img_0 , 4*in_feat ],
-                  [ 4*in_feat, in_feat, 3*in_feat ],
-                  [ 3*in_feat, 4*in_feat, 3*in_feat ],
+                  [ 4*in_feat, 2*in_feat, 4*in_feat ],
+                  [ 4*in_feat, in_feat + out_feat_img_0, 3*in_feat ], # <== Changed this
+                  [ 3*in_feat, 4*in_feat , 3*in_feat ],
                   [ 3*in_feat, 0, 3*in_feat ],
                 ]
 
@@ -361,7 +362,7 @@ base-intermediate-local-fusion:
         down_conv:
             module_name: ResNetDown
             block: block
-            conv3d_after_fusion: False
+            conv3d_after_fusion: False # conv -> fusion
             N: [ 0, 1, 1, 1, 1 ]
             kernel_size: [ 3, 2, 2, 2, 2 ]
             stride: [ 1, 2, 2, 2, 2 ]
@@ -385,15 +386,15 @@ base-intermediate-local-fusion:
                     mode: max
                 fusion:
                     module_name: SelfAttentiveBimodalFusion
-                    mode: global
-                    in_main: 8*in_feat
+                    mode: local
+                    in_main: FEAT
                     in_mod: out_feat_img_0 # Channel depth after the first resnet layer
-                    out_main: 8*in_feat
-                    nc_inner: 128 # Dimension of inner embedding
-                    nc_qk: 32 # Dimension of queries and keys
+                    out_main: FEAT
+                    nc_inner: 8 # Dimension of inner embedding
+                    nc_qk: 8 # Dimension of queries and keys
                     nsample: 16 # 16 nearest neighbors
-                branching_index: 4 # Intermediate fusion at the end of encoder
-                out_channels: 8*in_feat  # This is necessary to support batches with no images
+                branching_index: 0 # Intermediate fusion at the end of encoder
+                out_channels: FEAT  # This is necessary to support batches with no images
 #                 checkpointing: cav
 
         up_conv:
@@ -425,13 +426,13 @@ base-early-local-fusion:
         down_conv:
             module_name: ResNetDown
             block: block
-            conv3d_after_fusion: False
+            conv3d_after_fusion: False # conv -> fusion
             N: [ 0, 1, 1, 1, 1 ]
             kernel_size: [ 3, 2, 2, 2, 2 ]
             stride: [ 1, 2, 2, 2, 2 ]
             down_conv_nn:
               [
-                  [ FEAT + out_feat_img_0, 4*in_feat ],
+                  [ FEAT, 4*in_feat ],
                   [ 4*in_feat, in_feat ],
                   [ in_feat, 2*in_feat ],
                   [ 2*in_feat, 4*in_feat ],
@@ -452,12 +453,12 @@ base-early-local-fusion:
                     mode: local
                     in_main: FEAT
                     in_mod: out_feat_img_0 # Channel depth after the first resnet layer
-                    out_main: FEAT + out_feat_img_0
+                    out_main: FEAT
                     nc_inner: 8 # Dimension of inner embedding
                     nc_qk: 8 # Dimension of queries and keys
                     nsample: 16 # 16 nearest neighbors
-                branching_index: 0
-                out_channels: FEAT + out_feat_img_0  # This is necessary to support batches with no images
+                branching_index: 0 # Intermediate fusion at the end of encoder
+                out_channels: FEAT  # This is necessary to support batches with no images
 #                 checkpointing: cav
 
         up_conv:
@@ -474,6 +475,7 @@ base-early-local-fusion:
                   [ 3*in_feat, 4*in_feat, 3*in_feat ],
                   [ 3*in_feat, 0, 3*in_feat ],
                 ]
+
 
 base-csr-pooling:
     # 28.1 M params - 109.4 Mo on the GPU - ~2.7 ko/pixel at training time
@@ -537,3 +539,150 @@ base-csr-pooling:
                   [ 3*in_feat, 4*in_feat, 3*in_feat ],
                   [ 3*in_feat, 0, 3*in_feat ],
                 ]
+
+
+tiny-Res16UNet34-PointPyramid-early-max-cityscapes-interpolate:
+    # 28.1 M params - 109.4 Mo on the GPU - ~2.7 ko/pixel at training time
+    class: sparseconv3d.APIModel
+    conv_type: "SPARSE"
+    backend: "torchsparse"
+    backbone: # backbone offset specific for Sparse conv application builder
+        define_constants:
+            in_feat: 2
+            in_feat_img: 4
+            in_feat_map: 8
+            in_feat_attention: 4
+            block: ResBlock # Can be any of the blocks in modules/MinkowskiEngine/api_modules.py
+            l0: 128
+            l1: 64
+            l2: 128
+            l3: 256
+            l4: 512
+            l0_map: 128
+            l1_map: 64
+            l2_map: 128
+            l3_map: 256
+            l4_map: 512
+
+        down_conv:
+            n_early_conv: 5
+            module_name: ResNetDown
+            block: block
+            conv3d_after_fusion: False #conv->fusion
+            N: [ 0, 1, 1, 2, 1 ]
+            kernel_size: [ 3, 2, 2, 2, 2 ]
+            stride: [ 1, 2, 2, 2, 2 ]
+            down_conv_nn:
+              [
+                  [ FEAT + l0_map + l1_map + l2_map + l3_map + l4_map, 4*in_feat ],
+                  [ 4*in_feat, in_feat ],
+                  [ in_feat, 2*in_feat ],
+                  [ 2*in_feat, 4*in_feat ],
+                  [ 4*in_feat, 8*in_feat ],
+              ]
+
+            image:
+                down_conv:
+                    module_name: [
+                        CityscapesResNet18Layer0,
+                        CityscapesResNet18Layer1,
+                        CityscapesResNet18Layer2,
+                        CityscapesResNet18Layer3,
+                        CityscapesResNet18Layer4 ]
+                atomic_pooling:
+                    module_name: BimodalCSRPool
+                    mode: max
+                view_pooling:
+                    module_name: BimodalCSRPool
+                    mode: max
+                fusion:
+                    module_name: BimodalFusion
+                    mode: concatenation
+                branching_index: [ 0, 1, 2, 3, 4 ]
+                out_channels: [
+                        FEAT + l0_map,
+                        FEAT + l0_map + l1_map,
+                        FEAT + l0_map + l1_map + l2_map,
+                        FEAT + l0_map + l1_map + l2_map + l3_map,
+                        FEAT + l0_map + l1_map + l2_map + l3_map + l4_map ]  # This is necessary to support batches with no images
+                checkpointing: c
+                interpolate: True
+
+        up_conv:
+            block: block
+            module_name: ResNetUp
+            N: [ 1, 1, 1, 1, 1 ]
+            kernel_size: [ 2, 2, 2, 2, 3 ]
+            stride: [ 2, 2, 2, 2, 1 ]
+            up_conv_nn:
+                [
+                  [ 8*in_feat, 4*in_feat, 4*in_feat ],
+                  [ 4*in_feat, 2*in_feat, 4*in_feat ],
+                  [ 4*in_feat, in_feat, 3*in_feat ],
+                  [ 3*in_feat, 4*in_feat, 3*in_feat ],
+                  [ 3*in_feat, 0, 3*in_feat ],
+                ]
+
+ResUNet34-L4-late-Group:
+    # 28.1 M params - 109.4 Mo on the GPU - ~2.7 ko/pixel at training time
+    class: sparseconv3d.LateFeatureFusion
+    conv_type: "SPARSE"
+    backend: "torchsparse"
+    mode: concatenation
+
+    backbone_3d: # backbone offset specific for Sparse conv application builder
+        define_constants:
+            in_feat: 32
+            block: ResBlock # Can be any of the blocks in modules/MinkowskiEngine/api_modules.py
+
+        down_conv:
+            module_name: ResNetDown
+            block: block
+            N: [ 0, 1, 2, 2, 3 ]
+            kernel_size: [ 3, 2, 2, 2, 2 ]
+            stride: [ 1, 2, 2, 2, 2 ]
+            down_conv_nn:
+              [
+                  [ FEAT, in_feat ],
+                  [ in_feat, in_feat ],
+                  [ in_feat, 2*in_feat ],
+                  [ 2*in_feat, 4*in_feat ],
+                  [ 4*in_feat, 8*in_feat ],
+              ]
+
+        up_conv:
+            block: block
+            module_name: ResNetUp
+            N: [ 1, 1, 1, 1, 1 ]
+            kernel_size: [2, 2, 2, 2, 3]
+            stride: [ 2, 2, 2, 2, 1 ]
+            up_conv_nn:
+              [
+                  [ 8*in_feat, 4*in_feat, 4*in_feat ],
+                  [ 4*in_feat, 2*in_feat, 4*in_feat ],
+                  [ 4*in_feat, in_feat, 3*in_feat ],
+                  [ 3*in_feat, in_feat, 3*in_feat ],
+                  [ 3*in_feat, 0, 3*in_feat ],
+              ]
+
+    backbone_no3d:
+        down_conv:
+            image:
+                down_conv:
+                    module_name: ADE20KResNet18TruncatedLayer4
+                    frozen: False
+                atomic_pooling:
+                    module_name: BimodalCSRPool
+                    mode: max
+                view_pooling:
+                    module_name: GroupBimodalCSRPool
+                    in_map: 8
+                    in_mod: 512
+                    num_groups: 4
+                    use_mod: False
+                    map_encoder: DeepSetFeat
+                    use_num: True
+                fusion:
+                    module_name: BimodalFusion
+                    mode: modality
+                branching_index: 0

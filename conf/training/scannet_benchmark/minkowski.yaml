@@ -32,7 +32,7 @@ checkpoint_dir: ""
 # Those arguments within experiment defines which model, dataset and task to be created for benchmarking
 # parameters for Weights and Biases
 wandb:
-  entity: ""
+  entity: "adl4cv-dva"
   project: scannet-benchmark
   log: True
   notes: "Minkowski baseline"
