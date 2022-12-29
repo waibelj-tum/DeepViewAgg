@@ -344,7 +344,7 @@ base-early-local-fusion:
             block: ResBlock # Can be any of the blocks in modules/MinkowskiEngine/api_modules.py
             out_feat_img_0: 128  # out dim of CityscapesResNet18
             out_feat_img_4: 512
-            attention_out: 32
+            attention_out: 16
             # LAYERS OUT[128, 64, 128, 256, 512]
         down_conv:
             module_name: ResNetDown
@@ -398,3 +398,61 @@ base-early-local-fusion:
                   [ 3*in_feat, 4*in_feat, 3*in_feat ],
                   [ 3*in_feat, 0, 3*in_feat ],
                 ]
+
+base-late:
+    class: sparseconv3d.LateFeatureFusion
+    conv_type: "SPARSE"
+    backend: "torchsparse"
+    mode: concatenation
+
+    backbone_3d: # backbone offset specific for Sparse conv application builder
+        define_constants:
+            in_feat: 2
+            block: ResBlock # Can be any of the blocks in modules/MinkowskiEngine/api_modules.py
+
+        down_conv:
+            module_name: ResNetDown
+            block: block
+            N: [ 0, 1, 1, 1, 1 ]
+            kernel_size: [ 3, 2, 2, 2, 2 ]
+            stride: [ 1, 2, 2, 2, 2 ]
+            down_conv_nn:
+              [
+                  [ FEAT, in_feat ],
+                  [ in_feat, in_feat ],
+                  [ in_feat, 2*in_feat ],
+                  [ 2*in_feat, 4*in_feat ],
+                  [ 4*in_feat, 8*in_feat ],
+              ]
+
+        up_conv:
+            block: block
+            module_name: ResNetUp
+            N: [ 1, 1, 1, 1, 1 ]
+            kernel_size: [2, 2, 2, 2, 3]
+            stride: [ 2, 2, 2, 2, 1 ]
+            up_conv_nn:
+              [
+                  [ 8*in_feat, 4*in_feat, 4*in_feat ],
+                  [ 4*in_feat, 2*in_feat, 4*in_feat ],
+                  [ 4*in_feat, in_feat, 3*in_feat ],
+                  [ 3*in_feat, in_feat, 3*in_feat ],
+                  [ 3*in_feat, 0, 3*in_feat ],
+              ]
+
+    backbone_no3d:
+        down_conv:
+            image:
+                down_conv:
+                    module_name: ADE20KResNet18TruncatedLayer4
+                    frozen: False
+                atomic_pooling:
+                    module_name: BimodalCSRPool
+                    mode: max
+                view_pooling:
+                    module_name: BimodalCSRPool
+                    mode: max
+                fusion:
+                    module_name: BimodalFusion
+                    mode: modality
+                branching_index: 0
