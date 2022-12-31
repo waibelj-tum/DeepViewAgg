@@ -10,15 +10,15 @@
 # Select you GPU
 I_GPU=0
 
-DATA_ROOT="/path/to/your/dataset/root/directory"                        # set your dataset root directory, where the data was/will be downloaded
-EXP_NAME="My_awesome_ScanNet_experiment"                                # whatever suits your needs
+DATA_ROOT="/mnt/hdd/datasets/"                        # set your dataset root directory, where the data was/will be downloaded
+EXP_NAME="dev_debug"                                # whatever suits your needs
 TASK="segmentation"
-MODELS_CONFIG="${TASK}/multimodal/sparseconv3d"                         # family of multimodal models using the sparseconv3d backbone
-MODEL_NAME="Res16UNet34-PointPyramid-early-ade20k-interpolate"          # specific model name
+MODELS_CONFIG="${TASK}/multimodal/adl4cv-scannet"                         # family of multimodal models using the sparseconv3d backbone
+MODEL_NAME="early-deep-set-concat"          # specific model name
 DATASET_CONFIG="${TASK}/multimodal/scannet-sparse"
-TRAINING="scannet_benchmark/minkowski-pretrained-pyramid-0"             # training configuration for discriminative learning rate on the model
+TRAINING="scannet_benchmark/minkowski-pretrained-0"             # training configuration for discriminative learning rate on the model
 EPOCHS=300
-BATCH_SIZE=3                                                            # 4 fits in a 32G V100. Can be increased at inference time, of course
+BATCH_SIZE=1                                                            # 4 fits in a 32G V100. Can be increased at inference time, of course
 WORKERS=4                                                               # adapt to your machine
 BASE_LR=0.1                                                             # initial learning rate
 LR_SCHEDULER='exponential'                                              # learning rate scheduler for 60 epochs
