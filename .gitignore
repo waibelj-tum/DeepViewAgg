@@ -44,5 +44,4 @@ torch_points3d/applications/weights/*
 .idea
 python_for_remote_pycharm_conda
 
-*.sh
 scripts/cnes
