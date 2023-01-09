@@ -12,7 +12,7 @@ site
 kernels/dispositions/*
 notebooks/*checkpoints
 notebooks/*.html
-notebooks/*
+#notebooks/*
 py_scripts
 .ipynb_checkpoints
 measurements/*.pickle
