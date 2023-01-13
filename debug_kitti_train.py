@@ -58,8 +58,8 @@ if __name__ == "__main__":
     DATA_ROOT="/mnt/hdd/datasets"                                       # set your dataset root directory, where the data was/will be downloaded
     EXP_NAME="dev-debug"                              # whatever suits your needs
     TASK="segmentation"
-    MODELS_CONFIG=f"{TASK}/multimodal/adl4cv"                         # family of multimodal models using the sparseconv3d backbone
-    MODEL_NAME="base-early-local-fusion"      # specific model name
+    MODELS_CONFIG=f"{TASK}/multimodal/adl4cv-kitti"                         # family of multimodal models using the sparseconv3d backbone
+    MODEL_NAME="base-intermediate-local-fusion"      # specific model name
     DATASET_CONFIG=f"{TASK}/multimodal/kitti360-sparse"
     TRAINING="kitti360_benchmark/sparseconv3d"     # training configuration for discriminative learning rate on the model
     EPOCHS=60

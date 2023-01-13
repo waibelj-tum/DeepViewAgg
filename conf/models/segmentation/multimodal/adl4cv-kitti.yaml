@@ -313,9 +313,9 @@ base-intermediate:
               [
                   [ FEAT , 4*in_feat ],
                   [ 4*in_feat , in_feat ],
-                  [ in_feat + out_feat_img_0, 2*in_feat ], # <== Changed this
+                  [ in_feat, 2*in_feat ], # <== Changed this
                   [ 2*in_feat , 4*in_feat ],
-                  [ 4*in_feat, 8*in_feat ],
+                  [ 4*in_feat , 8*in_feat ],
               ]
 
             image:
@@ -330,8 +330,8 @@ base-intermediate:
                 fusion:
                     module_name: BimodalFusion
                     mode: concatenation
-                branching_index: 2                    # <== Changed this
-                out_channels: in_feat + out_feat_img_0  # <== Changed this
+                branching_index: 5                    # <== Changed this
+                out_channels: 8*in_feat + out_feat_img_0  # <== Changed this
                 checkpointing: cav
 
         up_conv:
@@ -342,9 +342,9 @@ base-intermediate:
             stride: [ 2, 2, 2, 2, 1 ]
             up_conv_nn:
                 [
-                  [ 8*in_feat, 4*in_feat, 4*in_feat ],
+                  [ 8*in_feat + out_feat_img_0, 4*in_feat, 4*in_feat ],
                   [ 4*in_feat, 2*in_feat, 4*in_feat ],
-                  [ 4*in_feat, in_feat + out_feat_img_0, 3*in_feat ], # <== Changed this
+                  [ 4*in_feat, in_feat, 3*in_feat ], # <== Changed this
                   [ 3*in_feat, 4*in_feat , 3*in_feat ],
                   [ 3*in_feat, 0, 3*in_feat ],
                 ]
@@ -358,7 +358,7 @@ base-intermediate-local-fusion:
             in_feat: 2
             block: ResBlock # Can be any of the blocks in modules/MinkowskiEngine/api_modules.py
             out_feat_img_0: 128  # out dim of CityscapesResNet18
-
+            attention_feats: 64
         down_conv:
             module_name: ResNetDown
             block: block
@@ -388,14 +388,13 @@ base-intermediate-local-fusion:
                 fusion:
                     module_name: SelfAttentiveBimodalFusion
                     mode: local
-                    in_main: FEAT
+                    in_main: 8*in_feat 
                     in_mod: out_feat_img_0 # Channel depth after the first resnet layer
-                    out_main: FEAT
-                    nc_inner: 8 # Dimension of inner embedding
-                    nc_qk: 8 # Dimension of queries and keys
+                    nc_inner: attention_feats # Dimension of inner embedding
+                    nc_qk: 32 # Dimension of queries and keys
                     nsample: 16 # 16 nearest neighbors
-                branching_index: 0 # Intermediate fusion at the end of encoder
-                out_channels: FEAT  # This is necessary to support batches with no images
+                branching_index: 5 # Intermediate fusion at the end of encoder
+                out_channels: 8*in_feat + out_feat_img_0  # This is necessary to support batches with no images
 #                 checkpointing: cav
 
         up_conv:
@@ -406,7 +405,7 @@ base-intermediate-local-fusion:
             stride: [ 2, 2, 2, 2, 1 ]
             up_conv_nn:
                 [
-                  [ 8*in_feat, 4*in_feat, 4*in_feat ],
+                  [ 8*in_feat + out_feat_img_0, 4*in_feat, 4*in_feat ],
                   [ 4*in_feat, 2*in_feat, 4*in_feat ],
                   [ 4*in_feat, in_feat, 3*in_feat ],
                   [ 3*in_feat, 4*in_feat, 3*in_feat ],

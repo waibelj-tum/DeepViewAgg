@@ -62,7 +62,7 @@ if __name__ == "__main__":
     EXP_NAME="dev-debug"                              # whatever suits your needs
     TASK="segmentation"
     MODELS_CONFIG=f"{TASK}/multimodal/adl4cv-scannet"                         # family of multimodal models using the sparseconv3d backbone
-    MODEL_NAME="Res16UNet34-L4-early-ade20k-interpolate-concat-fusion"      # specific model name
+    MODEL_NAME="Res16UNet34-L4-early-ade20k-interpolate-local-fusion"      # specific model name
     # MODEL_NAME = "base-local-fusion"
     DATASET_CONFIG=f"{TASK}/multimodal/scannet-sparse"
     #TRAINING="scannet_benchmark/minkowski-pretrained-pyramid-0"     # training configuration for discriminative learning rate on the model for pyramid ones
@@ -71,7 +71,7 @@ if __name__ == "__main__":
     TRAINVAL=False                                                          # True to train on Train+Val (eg before submission)
     BATCH_SIZE=1                                                    
     WORKERS=8                                                               # adapt to your machine
-    BASE_LR=0.02                                                             # initial learning rate
+    BASE_LR=0.1                                                             # initial learning rate
     LR_SCHEDULER='constant'                                                 # learning rate scheduler for 60 epochs
     EVAL_FREQUENCY=1                                                        # frequency at which metrics will be computed on Val. The less the faster the training but the less points on your validation curves
     SUBMISSION=False                                                        # True if you want to generate files for a submission to the KITTI-360 3D semantic segmentation benchmark
