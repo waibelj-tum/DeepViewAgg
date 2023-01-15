@@ -62,7 +62,7 @@ if __name__ == "__main__":
     EXP_NAME="dev-debug"                              # whatever suits your needs
     TASK="segmentation"
     MODELS_CONFIG=f"{TASK}/multimodal/adl4cv-scannet"                         # family of multimodal models using the sparseconv3d backbone
-    MODEL_NAME="Res16UNet34-L4-early-ade20k-interpolate-local-fusion"      # specific model name
+    MODEL_NAME="Res16UNet34-L4-ade20k-interpolate-no2d"      # specific model name
     # MODEL_NAME = "base-local-fusion"
     DATASET_CONFIG=f"{TASK}/multimodal/scannet-sparse"
     #TRAINING="scannet_benchmark/minkowski-pretrained-pyramid-0"     # training configuration for discriminative learning rate on the model for pyramid ones

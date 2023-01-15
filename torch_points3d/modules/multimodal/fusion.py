@@ -24,7 +24,7 @@ class BimodalFusion(nn.Module, ABC):
     main modality
     """
 
-    MODES = ["residual", "concatenation", "both", "modality"]
+    MODES = ["residual", "concatenation", "both", "modality", "no2d"]
 
     def __init__(self, mode="residual", **kwargs):
         super(BimodalFusion, self).__init__()
@@ -37,6 +37,8 @@ class BimodalFusion(nn.Module, ABC):
             self.f = lambda a, b: torch.cat((a, a + b), dim=-1)
         elif self.mode == "modality":
             self.f = lambda a, b: b
+        elif self.mode == "no2d":
+            self.f = lambda a, b: a
         else:
             raise NotImplementedError(
                 f"Unknown fusion mode='{mode}'. Please choose among "
