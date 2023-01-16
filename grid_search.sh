@@ -30,13 +30,13 @@ export SPARSE_BACKEND=torchsparse
 # export SPARSE_BACKEND=minkowski
 
 
-models=("early-deep-set-concat" "early-deep-set-local-fusion")
+models=("Res16UNet34-L4-early-ade20k-interpolate-local-fusion" "Res16UNet34-L4-early-ade20k-interpolate-concat-fusion")
 lrs=("0.1" "0.01" "0.05" "0.001")
 
 for model in "${models[@]}"; do
   MODEL_NAME=${model}
   for lr in "${lrs[@]}"; do
-    EXP_NAME="grid_search_kitty_${model}_${lr}"
+    EXP_NAME="grid_search_scannet_${model}_${lr}"
     BASE_LR=${lr}
 
     echo "Start ${MODEL_NAME} with learning rate ${BASE_LR}"
