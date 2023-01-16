@@ -40,7 +40,7 @@ checkpoint_dir: ""
 # parameters for Weights and Biases
 wandb:
   entity: ""
-  project: scannet-benchmark
+  project: scannet-L3-fusion
   log: True
   notes: "Minkowski baseline"
   name: "Res16UNet34"

@@ -1,4 +1,5 @@
 # @package _group_
 class: ExponentialLR
 params:
-  gamma: 0.9885 # = 0.1**(1/200.) divide by 10 every 200 epochs
+  #gamma: 0.9885 # = 0.1**(1/200.) divide by 10 every 200 epochs
+  gamma: 0.9545 # = 0.1**(1/50.) divide by 10 every 50 epochs
