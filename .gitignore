@@ -46,6 +46,7 @@ python_for_remote_pycharm_conda
 
 scripts/cnes
 ./notebooks/iframe_figures/*.html
-tensorboard/.
-nohup.*
+./tensorboard/.
+./nohup.out
+./.nohup.out.swp
 

@@ -358,7 +358,8 @@ base-intermediate-local-fusion:
             in_feat: 2
             block: ResBlock # Can be any of the blocks in modules/MinkowskiEngine/api_modules.py
             out_feat_img_0: 128  # out dim of CityscapesResNet18
-            attention_feats: 64
+            embed_2d: 128 
+            embed_3d: 128
         down_conv:
             module_name: ResNetDown
             block: block
@@ -390,11 +391,11 @@ base-intermediate-local-fusion:
                     mode: local
                     in_main: 8*in_feat 
                     in_mod: out_feat_img_0 # Channel depth after the first resnet layer
-                    nc_inner: attention_feats # Dimension of inner embedding
-                    nc_qk: 32 # Dimension of queries and keys
+                    embed_main: embed_3d
+                    embed_mod: embed_2d
                     nsample: 16 # 16 nearest neighbors
                 branching_index: 5 # Intermediate fusion at the end of encoder
-                out_channels: 8*in_feat + out_feat_img_0  # This is necessary to support batches with no images
+                out_channels: embed_2d + embed_3d  # This is necessary to support batches with no images
 #                 checkpointing: cav
 
         up_conv:
@@ -405,7 +406,7 @@ base-intermediate-local-fusion:
             stride: [ 2, 2, 2, 2, 1 ]
             up_conv_nn:
                 [
-                  [ 8*in_feat + out_feat_img_0, 4*in_feat, 4*in_feat ],
+                  [ embed_2d + embed_3d, 4*in_feat, 4*in_feat ],
                   [ 4*in_feat, 2*in_feat, 4*in_feat ],
                   [ 4*in_feat, in_feat, 3*in_feat ],
                   [ 3*in_feat, 4*in_feat, 3*in_feat ],

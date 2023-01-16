@@ -138,8 +138,8 @@ Res16UNet34-L4-intermediate-ade20k-interpolate-local-fusion:
             in_feat: 32
             in_feat_img: 4
             in_feat_map: 8
-            attention_in: 256
-            attention_keys: 256
+            embed_2d: 256 
+            embed_3d: 256
             attention_samples: 16
             block: ResBlock # Can be any of the blocks in modules/MinkowskiEngine/api_modules.py
             l4: 512  # out dim of ResNet18Layer4
@@ -180,8 +180,8 @@ Res16UNet34-L4-intermediate-ade20k-interpolate-local-fusion:
                     mode: local
                     in_main: 8*in_feat
                     in_mod: l4
-                    nc_inner: attention_in # Dimension of inner embedding
-                    nc_qk: attention_keys # Dimension of queries and keys
+                    embed_main: embed_3d
+                    embed_mod: embed_2d
                     nsample: attention_samples # 16 nearest neighbors
                 branching_index: 5
                 #out_channels: 8*in_feat + l4
@@ -196,7 +196,87 @@ Res16UNet34-L4-intermediate-ade20k-interpolate-local-fusion:
             stride: [ 2, 2, 2, 2, 1 ]
             up_conv_nn:
                 [
-                  [ 8*in_feat + l4, 4*in_feat, 4*in_feat ],
+                  [ embed_2d + embed_3d, 4*in_feat, 4*in_feat ],
+                  [ 4*in_feat, 2*in_feat, 4*in_feat ],
+                  [ 4*in_feat, in_feat, 3*in_feat ],
+                  [ 3*in_feat, 4*in_feat, 3*in_feat ],
+                  [ 3*in_feat, 0, 3*in_feat ],
+                ]
+
+
+Res16UNet34-L3-intermediate-ade20k-interpolate-local-fusion:
+    # 28.1 M params - 109.4 Mo on the GPU - ~2.7 ko/pixel at training time
+    class: sparseconv3d.APIModel
+    conv_type: "SPARSE"
+    backend: "torchsparse"
+    backbone: # backbone offset specific for Sparse conv application builder
+        define_constants:
+            in_feat: 32
+            in_feat_img: 4
+            in_feat_map: 8
+            embed_2d: 128 
+            embed_3d: 128
+            attention_samples: 16
+            block: ResBlock # Can be any of the blocks in modules/MinkowskiEngine/api_modules.py
+            l0: 128
+            l1: 64
+            l2: 128
+            l3: 256
+            l4: 512  # out dim of ResNet18Layer4
+
+        down_conv:
+            module_name: ResNetDown
+            block: block
+            conv3d_after_fusion: False
+            N: [ 0, 2, 3, 4, 6 ]
+            kernel_size: [ 3, 2, 2, 2, 2 ]
+            stride: [ 1, 2, 2, 2, 2 ]
+            down_conv_nn:
+              [
+                  [ FEAT, 4*in_feat ],
+                  [ 4*in_feat, in_feat ],
+                  [ in_feat, 2*in_feat ],
+                  [ 2*in_feat, 4*in_feat ],
+                  [ 4*in_feat, 8*in_feat ],
+              ]
+
+            image:
+                down_conv:
+                    module_name: ADE20KResNet18TruncatedLayer3
+                    frozen: False
+                atomic_pooling:
+                    module_name: BimodalCSRPool
+                    mode: max
+                view_pooling:
+                    module_name: GroupBimodalCSRPool
+                    in_map: 8
+                    in_mod: l3
+                    num_groups: 4
+                    use_mod: False
+                    map_encoder: DeepSetFeat
+                    use_num: True
+                fusion:
+                    module_name: SelfAttentiveBimodalFusion
+                    mode: local
+                    in_main: 8*in_feat
+                    in_mod: l3
+                    embed_main: embed_3d
+                    embed_mod: embed_2d
+                    nsample: attention_samples # 16 nearest neighbors
+                branching_index: 5
+                #out_channels: 8*in_feat + l4
+                checkpointing: av
+                interpolate: True
+
+        up_conv:
+            block: block
+            module_name: ResNetUp
+            N: [ 1, 1, 1, 1, 1 ]
+            kernel_size: [ 2, 2, 2, 2, 3 ]
+            stride: [ 2, 2, 2, 2, 1 ]
+            up_conv_nn:
+                [
+                  [ embed_2d + embed_3d, 4*in_feat, 4*in_feat ],
                   [ 4*in_feat, 2*in_feat, 4*in_feat ],
                   [ 4*in_feat, in_feat, 3*in_feat ],
                   [ 3*in_feat, 4*in_feat, 3*in_feat ],

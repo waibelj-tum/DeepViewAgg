@@ -62,21 +62,21 @@ if __name__ == "__main__":
     EXP_NAME="dev-debug"                              # whatever suits your needs
     TASK="segmentation"
     MODELS_CONFIG=f"{TASK}/multimodal/adl4cv-scannet"                         # family of multimodal models using the sparseconv3d backbone
-    MODEL_NAME="Res16UNet34-L4-ade20k-interpolate-no2d"      # specific model name
+    MODEL_NAME="Res16UNet34-L3-intermediate-ade20k-interpolate-local-fusion"      # specific model name
     # MODEL_NAME = "base-local-fusion"
     DATASET_CONFIG=f"{TASK}/multimodal/scannet-sparse"
     #TRAINING="scannet_benchmark/minkowski-pretrained-pyramid-0"     # training configuration for discriminative learning rate on the model for pyramid ones
-    TRAINING = "scannet_benchmark/minkowski"            # training configuration for discriminative learning rate on the model for a network with a single 2d layer   
+    TRAINING = "scannet_benchmark/minkowski-pretrained-5"            # training configuration for discriminative learning rate on the model for a network with a single 2d layer   
     EPOCHS=2
     TRAINVAL=False                                                          # True to train on Train+Val (eg before submission)
-    BATCH_SIZE=1                                                    
+    BATCH_SIZE=2                                                    
     WORKERS=8                                                               # adapt to your machine
     BASE_LR=0.1                                                             # initial learning rate
     LR_SCHEDULER='constant'                                                 # learning rate scheduler for 60 epochs
     EVAL_FREQUENCY=1                                                        # frequency at which metrics will be computed on Val. The less the faster the training but the less points on your validation curves
     SUBMISSION=False                                                        # True if you want to generate files for a submission to the KITTI-360 3D semantic segmentation benchmark
     CHECKPOINT_DIR=""                                                       # optional path to an already-existing checkpoint. If provided, the training will resume where it was left
-    TENSORBOARD = True
+    TENSORBOARD = False
 
     overrides = [
         'task=segmentation',
