@@ -20,6 +20,7 @@ log = logging.getLogger(__name__)
 
 class Checkpoint:
     _LATEST = "latest"
+    _LOG = True
 
     def __init__(self, checkpoint_file: str, save_every_iter: bool = True):
         """ Checkpoint manager. Saves to working directory with
@@ -54,6 +55,12 @@ class Checkpoint:
                 to_save[key] = value
 
         torch.save(to_save, self.path)
+        if Checkpoint._LOG:
+            if stage == "val":
+                epoch = current_stat["epoch"]
+                torch.save(to_save, str(epoch) + "_" + self.path)
+
+
 
     @property
     def path(self):
@@ -237,6 +244,7 @@ class ModelCheckpoint(object):
             resume=resume)
         self._resume = resume
         self._selection_stage = selection_stage
+        self.log_models = True
 
     def create_model(self, dataset, weight_name=Checkpoint._LATEST):
         if not self.is_empty:
