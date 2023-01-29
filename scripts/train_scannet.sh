@@ -11,10 +11,10 @@
 I_GPU=0
 
 DATA_ROOT="/mnt/hdd/datasets/"                        # set your dataset root directory, where the data was/will be downloaded
-EXP_NAME="attentive-L3-2d-128-3d-128"                                # whatever suits your needs
+EXP_NAME="Res16UNet34-L3-intermediate-ade20k-2D-only"                                # whatever suits your needs
 TASK="segmentation"
 MODELS_CONFIG="${TASK}/multimodal/adl4cv-scannet"                         # family of multimodal models using the sparseconv3d backbone
-MODEL_NAME="Res16UNet34-L3-intermediate-ade20k-interpolate-local-fusion"          # specific model name
+MODEL_NAME="Res16UNet34-L3-intermediate-ade20k-2D-only"          # specific model name
 DATASET_CONFIG="${TASK}/multimodal/scannet-sparse"
 TRAINING="scannet_benchmark/minkowski-pretrained-5"             # training configuration for discriminative learning rate on the model
 EPOCHS=150

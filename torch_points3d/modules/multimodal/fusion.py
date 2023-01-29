@@ -82,7 +82,7 @@ class SelfAttentiveBimodalFusion(nn.Module, ABC):
     batch size 1 seems to work.
     """
 
-    MODES = [ "local"]
+    MODES = [ "local", "no-embedding-local"]
 
     def __init__(
         self,
@@ -94,6 +94,8 @@ class SelfAttentiveBimodalFusion(nn.Module, ABC):
         nsample=16,
         embed_mod = 256,
         embed_main = 256,
+        residual = True,
+        embedding = True,
         **kwargs
     ):
         super().__init__()
@@ -106,6 +108,8 @@ class SelfAttentiveBimodalFusion(nn.Module, ABC):
         self.nsample = nsample
         self.embed_mod = embed_mod
         self.embed_main = embed_main
+        self.residual = residual
+        self.embedding = embedding
 
         # Layers
         self.concat = lambda a, b: torch.cat((a, b), dim=-1)
@@ -113,14 +117,16 @@ class SelfAttentiveBimodalFusion(nn.Module, ABC):
 
         if self.mode == "local":
             # Linear layers to reduce dimensionality of 2d and 3d features
-            self.E_2d = nn.Linear(in_mod, embed_mod)
-            self.E_3d = nn.Linear(in_main, embed_main)
+            if self.embedding:
+                self.E_2d = nn.Linear(in_mod, embed_mod)
+                self.E_3d = nn.Linear(in_main, embed_main)
 
+            pt_dim = embed_mod + embed_main if self.embedding else in_mod + in_main
             # PointTransformer layer, it already has linear layers and softmax.
             # Works on the embedded representations, so in_planes is nc_inner.
             self.pointtransformer_layer = PointTransformerLayer(
-                in_planes=self.embed_main + self.embed_mod, 
-                out_planes=self.embed_main + self.embed_mod, nsample=self.nsample
+                in_planes=pt_dim,
+                out_planes=pt_dim, nsample=self.nsample
             )
         else:
             raise NotImplementedError(f"Unsupported fusion mode {self.mode}!")
@@ -137,12 +143,13 @@ class SelfAttentiveBimodalFusion(nn.Module, ABC):
 
         if self.mode == "local":
             # Embed 2d and 3d features
-            x_mod = self.E_2d(x_mod)  # (N, embed_mod)
-            x_main = self.E_3d(x_main) # (N, embed_main)
+            if self.embedding:
+                x_mod = self.E_2d(x_mod)  # (N, embed_mod)
+                x_main = self.E_3d(x_main) # (N, embed_main)
 
             # Concatenate and save the residual
             x_fused = self.concat(x_main, x_mod)  # (N, embed_mod + embed_main)
-            x_res = x_fused # Residual 
+            x_res = x_fused if self.residual else None # Residual 
 
             # Fourth column is the batch idx we need coordinates
             coords = xyz[:, 0:3]
@@ -159,9 +166,10 @@ class SelfAttentiveBimodalFusion(nn.Module, ABC):
             # the offset tensor.
             x_fused = self.pointtransformer_layer([coords, x_fused, offset]) # (N, embed_mod + embed_main)
 
-            # Adding the residual connection 
-            x_fused += x_res 
-
+            # Adding the residual connection
+            if self.residual:
+                x_fused += x_res
+                
         else:
             raise NotImplementedError(f"Unsupported fusion mode {self.mode}!")
 
