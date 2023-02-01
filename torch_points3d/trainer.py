@@ -27,6 +27,7 @@ from torch_points3d.utils.colors import COLORS
 from torch_points3d.utils.wandb_utils import Wandb
 from torch_points3d.utils.config import getattr_recursive
 from torch_points3d.visualization import Visualizer
+from torch_points3d.modules.multimodal.pooling import BimodalCSRPool
 
 log = logging.getLogger(__name__)
 

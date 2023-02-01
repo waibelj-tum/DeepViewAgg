@@ -11,14 +11,14 @@
 I_GPU=0
 
 DATA_ROOT="/mnt/hdd/datasets/"                        # set your dataset root directory, where the data was/will be downloaded
-EXP_NAME="Res16UNet34-L3-intermediate-ade20k-2D-only"                                # whatever suits your needs
+EXP_NAME="Res16UNet34-L3-intermediate-local-fusion-no-emb-64"                                # whatever suits your needs
 TASK="segmentation"
 MODELS_CONFIG="${TASK}/multimodal/adl4cv-scannet"                         # family of multimodal models using the sparseconv3d backbone
-MODEL_NAME="Res16UNet34-L3-intermediate-ade20k-2D-only"          # specific model name
+MODEL_NAME="Res16UNet34-L3-intermediate-local-fusion-no-emb-64"          # specific model name
 DATASET_CONFIG="${TASK}/multimodal/scannet-sparse"
 TRAINING="scannet_benchmark/minkowski-pretrained-5"             # training configuration for discriminative learning rate on the model
 EPOCHS=150
-BATCH_SIZE=2                                                            # 4 fits in a 32G V100. Can be increased at inference time, of course
+BATCH_SIZE=1                                                            # 4 fits in a 32G V100. Can be increased at inference time, of course
 WORKERS=4                                                               # adapt to your machine
 BASE_LR=0.1                                                             # initial learning rate
 LR_SCHEDULER='exponential'                                              # learning rate scheduler for 60 epochs
